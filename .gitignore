@@ -1,0 +1,9 @@
+node_modules/
+.next/
+dist/
+.env
+.vscode/
+*.log
+project-files.json
+*.zip
+.backup_quick/

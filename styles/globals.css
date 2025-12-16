@@ -1,0 +1,133 @@
+/* styles/globals.css - updated: Particle Web support + stable dark background */
+
+/* -- color variables -- */
+:root{
+  --card: rgba(255,255,255,0.03);
+  --text: #e6eef6;
+  --muted: #94a3b8;
+
+  --like-start: #3b82f6;
+  --like-end: #06b6d4;
+
+  --control-bg: rgba(255,255,255,0.03);
+  --page-title-grad: linear-gradient(90deg,#FF7A88,#B85CF6);
+}
+
+/* Light theme */
+[data-theme="light"]{
+  --card: rgba(2,6,23,0.03);
+  --text: #081029;
+  --muted: #475569;
+  --control-bg: rgba(2,6,23,0.06);
+  --like-start: #ff7a88;
+  --like-end: #b85cf6;
+}
+
+/* Light theme body: image if present, fixed attachment */
+[data-theme="light"] body{
+  background-color: #E7A9B1; /* fallback */
+  background-image: url('/light-bg.jpg');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+/* Dark theme — SOLID background color so no visual leakage on scroll */
+[data-theme="dark"]{
+  --bg-dark: #141851; /* exact */
+  --bg-dark-alt: #0b1530;
+  --text: #eaf2ff;
+  --muted: #9fb4d1;
+  --like-start: #3b82f6;
+  --like-end: #06b6d4;
+}
+
+/* IMPORTANT: use a solid color for dark body to avoid "leaks" */
+[data-theme="dark"] body {
+  background-color: var(--bg-dark);
+  color: var(--text);
+  /* optional subtle overlay (non-transparent) removed to prevent scroll artifacts */
+  background-image: none;
+  background-attachment: scroll;
+}
+
+/* base reset */
+html, body, #__next { height: 100%; }
+body {
+  margin: 0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans";
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-repeat: no-repeat;
+  background-size: cover;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ensure main content sits above the canvas */
+.container.fullscreen {
+  position: relative;
+  z-index: 1;
+  width: calc(100vw - 32px);
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 18px 16px;
+  min-height: calc(100vh - 36px);
+  box-sizing: border-box;
+}
+
+/* small helper — if your app root isn't .container.fullscreen, ensure root content has z-index > 0 */
+#__next > * { position: relative; z-index: 1; }
+
+/* header and controls */
+.header {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+}
+.header h1 { margin:0; font-size:1.8rem; }
+.subtitle { font-size:0.95rem; color:var(--muted); }
+
+.controls-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+.controls { display:flex; gap:8px; align-items:center; }
+.controls input {
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.04);
+  background:var(--control-bg);
+  color:inherit;
+  min-width:220px;
+}
+
+/* Reset and other buttons use theme-aware gradient variables */
+.controls button {
+  padding:10px 12px;
+  border-radius:10px;
+  border:none;
+  background: linear-gradient(90deg,var(--like-start),var(--like-end));
+  color:white;
+  cursor:pointer;
+}
+
+/* Video card layout defaults — you likely have more specifics elsewhere */
+.card { background: var(--card); border-radius:12px; overflow:hidden; }
+
+/* responsive */
+@media (max-width:900px) {
+  .container.fullscreen { width: calc(100vw - 20px); padding:12px; }
+  .controls input { min-width:140px; }
+}
+
+/* safety: particle canvas shouldn't affect scrolling or pointer events */
+.particle-web-canvas {
+  pointer-events: none !important;
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 0 !important; /* content (z-index:1) appears above */
+  display: block !important;
+}
