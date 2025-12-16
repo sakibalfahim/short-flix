@@ -3,7 +3,16 @@ node_modules/
 dist/
 .env
 .vscode/
+
+# Local logs / temp
 *.log
 project-files.json
 *.zip
 .backup_quick/
+
+# TypeScript incremental build info (do not commit)
+tsconfig.tsbuildinfo
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
