@@ -4,8 +4,11 @@ import { useEffect, useRef } from 'react'
 
 /**
  * NetTheme.tsx — particle-net background (full-file replacement)
- * - All runtime helpers (resize, step, initNodes) live inside useEffect so hooks/deps are stable
- * - Respects prefers-reduced-motion and runs only when html[data-theme] === 'dark'
+ * - Runs only on client
+ * - Injects a canvas into <html> and keeps it behind UI
+ * - Nodes ATTRACT to pointer (not repel)
+ * - Respects prefers-reduced-motion
+ * - Canvas class matches CSS (.particle-web-canvas)
  */
 
 type NodeT = { x: number; y: number; vx: number; vy: number; ox: number; oy: number }
@@ -38,11 +41,10 @@ export default function NetTheme(): JSX.Element | null {
   const moRef = useRef<MutationObserver | null>(null)
 
   useEffect(() => {
-    // Hook must always run (declared unconditionally). Internal logic is guarded.
     if (typeof window === 'undefined' || typeof document === 'undefined') return
     if (prefersReducedMotion()) return
 
-    // ---------- internal helpers (defined inside effect to avoid hook-deps complaints) ----------
+    // helpers inside effect to keep hook stable
     function computeNodeCount(w: number, h: number) {
       const areaK = (w * h) / (1280 * 720)
       return Math.round(Math.min(48, Math.max(18, 24 * areaK)))
@@ -97,15 +99,19 @@ export default function NetTheme(): JSX.Element | null {
 
       for (let i = 0; i < nodes.length; i++) {
         const n = nodes[i]
+        // spring to origin
         n.vx += (n.ox - n.x) * 0.01
         n.vy += (n.oy - n.y) * 0.01
+        // wind
         n.vx += windX * 0.06
         n.vy += windY * 0.06
+        // damping & jitter
         n.vx *= 0.93
         n.vy *= 0.93
         n.vx += (Math.random() - 0.5) * 0.04
         n.vy += (Math.random() - 0.5) * 0.04
 
+        // attraction: nodes move toward pointer (positive attraction)
         if (p) {
           const dx = p.x - n.x, dy = p.y - n.y
           const dist = Math.sqrt(dx * dx + dy * dy) || 0.0001
@@ -117,15 +123,18 @@ export default function NetTheme(): JSX.Element | null {
           }
         }
 
+        // integrate
         n.x += n.vx
         n.y += n.vy
+
+        // soft wrap
         if (n.x < -40) n.x = W + 40
         if (n.x > W + 40) n.x = -40
         if (n.y < -40) n.y = H + 40
         if (n.y > H + 40) n.y = -40
       }
 
-      // draw connections + nodes
+      // draw
       ctx.save()
       ctx.scale(dpr, dpr)
       ctx.lineCap = 'round'
@@ -182,23 +191,30 @@ export default function NetTheme(): JSX.Element | null {
       rafRef.current = requestAnimationFrame(step)
     }
 
-    // ---------- setup ----------
+    // setup: append canvas to <html>
     const root = document.documentElement
-    const canvas = document.createElement('canvas')
-    canvas.setAttribute('aria-hidden', 'true')
-    canvas.className = 'particle-web-html-canvas'
-    canvas.style.position = 'fixed'
-    canvas.style.inset = '0'
-    canvas.style.pointerEvents = 'none'
-    canvas.style.zIndex = '0'
-    canvas.style.opacity = '1'
-    canvas.style.display = 'block'
+    // avoid duplicating canvas if hot-reload re-runs effect
+    const existing = root.querySelector('.particle-web-canvas') as HTMLCanvasElement | null
+    if (existing) {
+      canvasRef.current = existing
+    } else {
+      const canvas = document.createElement('canvas')
+      canvas.setAttribute('aria-hidden', 'true')
+      canvas.className = 'particle-web-canvas' // <-- match CSS
+      canvas.style.position = 'fixed'
+      canvas.style.inset = '0'
+      canvas.style.pointerEvents = 'none'
+      canvas.style.zIndex = '0'
+      canvas.style.opacity = '1'
+      canvas.style.display = 'block'
+      canvasRef.current = canvas
+      root.appendChild(canvas)
+    }
 
-    canvasRef.current = canvas
-    root.appendChild(canvas)
+    const canvas = canvasRef.current!
     resizeCanvas(canvas)
 
-    // pointer handling
+    // pointer handling (throttled)
     let last = 0
     function onPointer(e: PointerEvent) {
       const now = performance.now()
@@ -229,21 +245,23 @@ export default function NetTheme(): JSX.Element | null {
     })
     moRef.current.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
 
+    // start only if dark initially
     activeRef.current = htmlIsDark()
     if (activeRef.current && !rafRef.current) rafRef.current = requestAnimationFrame(step)
 
-    // ---------- cleanup ----------
+    // cleanup
     return () => {
       window.removeEventListener('pointermove', onPointer)
       window.removeEventListener('pointerleave', onLeave)
       try { if (roRef.current) roRef.current.disconnect() } catch {}
       try { if (moRef.current) moRef.current.disconnect() } catch {}
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
-      try { root.removeChild(canvas) } catch {}
+      // keep canvas element for HMR but clear drawing and detach if we created it now
+      try { if (canvasRef.current && canvasRef.current.parentElement === root) root.removeChild(canvasRef.current) } catch {}
       rafRef.current = null
       canvasRef.current = null
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // effect intentionally run once
   }, [])
 
   return null
