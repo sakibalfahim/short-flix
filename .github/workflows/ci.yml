@@ -37,7 +37,7 @@ jobs:
       - name: Run tests
         run: npm test
 
-  # Deploy only runs on master branch; actual step checks for secret presence.
+  # Deploy job runs only on master branch; runtime script decides whether to actually deploy.
   deploy:
     if: ${{ github.ref == 'refs/heads/master' }}
     runs-on: ubuntu-latest
@@ -57,10 +57,14 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Deploy to Vercel (skip if no token)
-        if: ${{ secrets.VERCEL_TOKEN != '' }}
+      - name: Deploy to Vercel (no-op when VERCEL_TOKEN not provided)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
+          if [ -z "${VERCEL_TOKEN:-}" ]; then
+            echo "VERCEL_TOKEN not found — skipping deploy (expected for forks/local builds)."
+            exit 0
+          fi
+          echo "VERCEL_TOKEN found — deploying to Vercel..."
           npx vercel --version
-          npx vercel --prod --confirm --token $VERCEL_TOKEN
+          npx vercel --prod --confirm --token "$VERCEL_TOKEN"
