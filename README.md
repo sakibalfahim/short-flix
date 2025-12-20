@@ -9,7 +9,7 @@ Mini demo platform for short videos built with **Next.js + TypeScript**. API rou
 ---
 
 ## Live demo
-> **URL:** `https://short-flix-dun.vercel.app/`
+> **URL:** [https://short-flix-dun.vercel.app/](https://short-flix-dun.vercel.app/)
 
 ---
 
