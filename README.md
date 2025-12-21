@@ -98,3 +98,11 @@ Run all tests locally:
 
 ## Project files of interest
 `pages/`, `components/`, `styles/`, `src/lib/shorts.js`, `pages/api/shorts.ts`, `.github/workflows/ci.yml`, `Dockerfile`, `Makefile`.
+
+---
+
+## Next improvements (set to add with time)
+- Persist shorts to a tiny hosted DB (SQLite/Postgres) behind the API.
+- E2E tests (Playwright).
+- Production monitoring and error tracking (Sentry).
+- Rate-limited uploads, streaming optimization, and CDN headers.
