@@ -49,6 +49,7 @@ npm run type-check
 npm run lint
 npm run build
 npm test
+```
 
 ---
 
@@ -61,6 +62,7 @@ docker build -t short-flix:latest .
 # run (exposes port 3000)
 docker run --rm -it -p 3000:3000 short-flix:latest
 # then open http://localhost:3000
+```
 
 ---
 
@@ -84,6 +86,7 @@ Run all tests locally:
 
   ```powershell
   npm test
+```
 
 ---
 

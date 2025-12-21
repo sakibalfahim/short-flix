@@ -302,7 +302,7 @@ export default function AddShortForm({ onAdded }: Props) {
               />
             ) : (
               <div style={{ color: mutedColor, padding: 12, textAlign: 'center' }}>
-                {videoUrl ? 'Preview not available for this URL' : 'Enter a direct mp4/webm/ogg URL to preview here'}
+                {videoUrl ? 'Preview is not available/Invalid URL' : 'Enter a direct mp4/webm/ogg URL to preview here'}
               </div>
             )}
           </div>
